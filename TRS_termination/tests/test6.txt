@@ -1,0 +1,8 @@
+lexicographic
+constructors = h(1), s(1), b(1)
+variables = x, z
+h(z) = z
+h(s(z)) = z
+h(s(s(x))) = s(h(x))
+b(z) = z
+b(s(x)) = s(b(h(s(x))))

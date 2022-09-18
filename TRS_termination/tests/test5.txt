@@ -1,0 +1,5 @@
+lexicographic
+constructors = a(2), s(1)
+variables = x, y
+a(x, y) = y
+a(s(x), y) = s(a(x, y))

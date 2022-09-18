@@ -1,0 +1,4 @@
+anti-lexicographic
+constructors = f(2), h(1)
+variables = x
+f(x, h(x)) = h(f(h(x), x))

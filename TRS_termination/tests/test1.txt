@@ -1,0 +1,4 @@
+lexicographic
+constructors = g(1), f(1)
+variables = x
+g(x) = g(f(x))
