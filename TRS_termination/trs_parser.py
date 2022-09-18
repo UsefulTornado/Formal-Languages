@@ -39,17 +39,17 @@ class Parser:
         self.variables = list(filter(str.isalpha, string))
 
     def _rule_lexer(self, rule_str: str) -> Queue:
-        lexems = Queue()
+        lexemes = Queue()
 
         for s in rule_str:
             if s == '(':
-                lexems.put(Lexeme(Tag.LPAREN, value=s))
+                lexemes.put(Lexeme(Tag.LPAREN, value=s))
             elif s == ')':
-                lexems.put(Lexeme(Tag.RPAREN, value=s))
+                lexemes.put(Lexeme(Tag.RPAREN, value=s))
             elif s == ',':
-                lexems.put(Lexeme(Tag.COMMA, value=s))
+                lexemes.put(Lexeme(Tag.COMMA, value=s))
             elif s == '=':
-                lexems.put(Lexeme(Tag.EQ, value=s))
+                lexemes.put(Lexeme(Tag.EQ, value=s))
             elif s.isalpha():
                 if s in self.variables:
                     tag = Tag.VAR
@@ -57,41 +57,41 @@ class Parser:
                     tag = Tag.CONS
                 else:
                     raise Exception(f'No such variable or constructor: {s}')
-                lexems.put(Lexeme(tag, value=s))
+                lexemes.put(Lexeme(tag, value=s))
 
-        lexems.put(Lexeme(Tag.END))
-        return lexems
+        lexemes.put(Lexeme(Tag.END))
+        return lexemes
     
     def _parse_rule(self, rule_str: str) -> RewritingRule:
-        lexems = self._rule_lexer(rule_str)
+        lexemes = self._rule_lexer(rule_str)
 
         def rule():
             left = term()
-            assert lexems.get().tag == Tag.EQ
+            assert lexemes.get().tag == Tag.EQ
             right = term()
             return RewritingRule(left, right)
 
         def term():
-            lexem = lexems.get()
-            if lexem.tag == Tag.VAR:
-                return Variable(lexem.value)
-            if lexem.tag == Tag.CONS:
-                assert lexems.get().tag == Tag.LPAREN
+            lexeme = lexemes.get()
+            if lexeme.tag == Tag.VAR:
+                return Variable(lexeme.value)
+            if lexeme.tag == Tag.CONS:
+                assert lexemes.get().tag == Tag.LPAREN
                 args = expr()
-                assert lexems.get().tag == Tag.RPAREN
-                return Constructor(lexem.value, args)
+                assert lexemes.get().tag == Tag.RPAREN
+                return Constructor(lexeme.value, args)
 
             raise Exception((
                 'Wrong order of lexemes. '
-                f'Instead of <VAR> or <CONS> lexem <{lexem.tag}> '
-                f'with "{lexem.value}" was received'))
+                f'Instead of <VAR> or <CONS> lexeme <{lexeme.tag}> '
+                f'with "{lexeme.value}" was received'))
 
         def expr():
             return expr_tail([term()])
 
         def expr_tail(terms):
-            if lexems.queue[0].tag == Tag.COMMA:
-                lexems.get()
+            if lexemes.queue[0].tag == Tag.COMMA:
+                lexemes.get()
                 terms.append(term())
                 return expr_tail(terms)
             return terms
