@@ -1,0 +1,85 @@
+Rewriting rules:
+	aa -> a
+	ac -> a
+	ba -> a
+	bb -> b
+	cb -> bc
+	cc -> c
+	abc -> ab
+	bca -> ca
+	cab -> bc
+
+Equivalence classes:
+	a := {('Q0', 'Q1'), ('Q1', 'Q1'), ('Q2', 'Q1')}
+	b := {('Q2', 'Q2'), ('Q0', 'Q0'), ('Q1', 'Q2')}
+	c := {('Q2', 'Q2'), ('Q1', 'Q1')}
+	ab := {('Q2', 'Q2'), ('Q0', 'Q2'), ('Q1', 'Q2')}
+	bc := {('Q2', 'Q2'), ('Q1', 'Q2')}
+	ca := {('Q1', 'Q1'), ('Q2', 'Q1')}
+
+Words that are accepted by the DFA:
+	ab
+
+Information for each class:
+	Class w = "a":
+		Equivalence classes "v" such that dfa accepts "vw":
+			
+		Equivalence classes "u" such that dfa accepts "wu":
+			b, ab, bc
+		Equivalence classes "v" and "u" such that dfa accepts "vwu":
+			('a', 'b'), ('a', 'ab'), ('a', 'bc'), ('b', 'b'), ('b', 'ab'), ('b', 'bc'), ('ab', 'b'), ('ab', 'ab'), ('ab', 'bc')
+		Synchronizes to state: Q1
+
+	Class w = "b":
+		Equivalence classes "v" such that dfa accepts "vw":
+			a, ab
+		Equivalence classes "u" such that dfa accepts "wu":
+			ab
+		Equivalence classes "v" and "u" such that dfa accepts "vwu":
+			('a', 'b'), ('a', 'c'), ('a', 'ab'), ('a', 'bc'), ('b', 'ab'), ('ab', 'b'), ('ab', 'c'), ('ab', 'ab'), ('ab', 'bc')
+		Word is not synchronizing
+
+	Class w = "c":
+		Equivalence classes "v" such that dfa accepts "vw":
+			ab
+		Equivalence classes "u" such that dfa accepts "wu":
+			
+		Equivalence classes "v" and "u" such that dfa accepts "vwu":
+			('a', 'b'), ('a', 'ab'), ('a', 'bc'), ('ab', 'b'), ('ab', 'c'), ('ab', 'ab'), ('ab', 'bc')
+		Word is not synchronizing
+
+	Class w = "ab":
+		Equivalence classes "v" such that dfa accepts "vw":
+			a, b, ab
+		Equivalence classes "u" such that dfa accepts "wu":
+			b, c, ab, bc
+		Equivalence classes "v" and "u" such that dfa accepts "vwu":
+			('a', 'b'), ('a', 'c'), ('a', 'ab'), ('a', 'bc'), ('b', 'b'), ('b', 'c'), ('b', 'ab'), ('b', 'bc'), ('ab', 'b'), ('ab', 'c'), ('ab', 'ab'), ('ab', 'bc')
+		Synchronizes to state: Q2
+
+	Class w = "bc":
+		Equivalence classes "v" such that dfa accepts "vw":
+			a, ab
+		Equivalence classes "u" such that dfa accepts "wu":
+			
+		Equivalence classes "v" and "u" such that dfa accepts "vwu":
+			('a', 'b'), ('a', 'c'), ('a', 'ab'), ('a', 'bc'), ('ab', 'b'), ('ab', 'c'), ('ab', 'ab'), ('ab', 'bc')
+		Word is not synchronizing
+
+	Class w = "ca":
+		Equivalence classes "v" such that dfa accepts "vw":
+			
+		Equivalence classes "u" such that dfa accepts "wu":
+			
+		Equivalence classes "v" and "u" such that dfa accepts "vwu":
+			('a', 'b'), ('a', 'ab'), ('a', 'bc'), ('ab', 'b'), ('ab', 'ab'), ('ab', 'bc')
+		Word is not synchronizing
+
+Myhill-Nerode equivalence classes:
++----+---+---+---+---+----+----+----+
+|    |   | a | b | c | ab | bc | ca |
++----+---+---+---+---+----+----+----+
+|    | - | - | - | - | +  | -  | -  |
+| a  | - | - | + | - | +  | +  | -  |
+| ab | + | - | + | + | +  | +  | -  |
++----+---+---+---+---+----+----+----+
