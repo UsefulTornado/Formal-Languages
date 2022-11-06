@@ -23,8 +23,8 @@ class CFGrammar:
 
     def new_nonterminal(self, sym, used_symbols):
         suffix = 0
-        new_sym = sym + str(suffix)
-        while new_sym in self.nonterminals | used_symbols:
+        sym = sym.upper()
+        while sym + str(suffix) in self.nonterminals | used_symbols:
             suffix += 1
         return sym + str(suffix)
 
@@ -90,11 +90,15 @@ class CFGrammar:
                         for idx, sym in enumerate(rule.right):
                             if sym in nullable:
                                 candidates.put(rule.right[:idx] + rule.right[idx + 1 :])
-                    elif rule.left == cfg.start:
-                        new_rules.append(rule)
 
         for rule in cfg.rules:
             update_with_combinations(rule.left, rule.right)
+
+        if cfg.start in nullable:
+            new_start = cfg.new_nonterminal(cfg.start, set())
+            new_rules.append(Rule(new_start, [cfg.start]))
+            new_rules.append(Rule(new_start, []))
+            return CFGrammar(new_start, new_rules)
 
         return CFGrammar(cfg.start, new_rules)
 
