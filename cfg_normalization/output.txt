@@ -1,0 +1,29 @@
+Starting: N0_S
+Nonterminals: S_S A0_S N0_S A_S
+
+Rules:
+
+N0_S -> b
+N0_S -> b S_S
+N0_S -> b A_S
+N0_S -> a A0_S
+A_S -> a A_S
+A_S -> a A0_A0 A_S
+
+NFAs for sentential forms:
+
+S
+<A_S, ['S0']> -> S_S
+<S_S, ['S1']> -> S_S
+<N0_S, ['b']> -> S_S
+<A_S, ['A0']> -> A_S
+<N0_S, ['b']> -> A_S
+<N0_S, ['a']> -> A0_S
+
+A0
+<N0_A0, ['a']> -> A0_A0
+
+A
+<A_A, ['A0']> -> A_A
+<N0_A, ['b']> -> A_A
+<N0_A, ['a']> -> A0_A
