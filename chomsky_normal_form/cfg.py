@@ -3,14 +3,20 @@ from copy import deepcopy
 
 
 class Nonterminal:
-    def __init__(self, symbol):
+    def __init__(self, symbol, mark=None):
         self.symbol = symbol
+        self.mark = mark
 
     def __eq__(self, other):
         return isinstance(other, Nonterminal) and self.symbol == other.symbol
 
     def __hash__(self):
         return hash(self.symbol)
+
+    def __str__(self):
+        if self.mark:
+            return f'{self.symbol}_{self.mark.symbol}'
+        return self.symbol
 
 
 class Terminal:
@@ -22,6 +28,9 @@ class Terminal:
 
     def __hash__(self):
         return hash(self.symbol)
+
+    def __str__(self):
+        return self.symbol
 
 
 class Rule:
@@ -35,6 +44,9 @@ class Rule:
             and self.left == other.left
             and self.right == other.right
         )
+    
+    def __str__(self):
+        return f'{self.left} -> {" ".join(list(map(str, self.right)))}'
 
 
 class CFGrammar:
@@ -50,12 +62,12 @@ class CFGrammar:
             nonterminals.update({sym for sym in rule.right if isinstance(sym, Nonterminal)})
         return nonterminals
 
-    def new_nonterminal(self, sym, used_nonterminals):
+    def new_nonterminal(self, sym, used_nonterminals, mark=None):
         suffix = 0
         sym = sym.upper()
         while Nonterminal(sym + str(suffix)) in self.nonterminals | used_nonterminals:
             suffix += 1
-        return Nonterminal(sym + str(suffix))
+        return Nonterminal(sym + str(suffix), mark)
 
     @staticmethod
     def remove_long_rules(cfg):
@@ -132,7 +144,6 @@ class CFGrammar:
     def update_start(cfg):
         new_rules = []
         need_new_start = False
-
         for rule in cfg.rules:
             if cfg.start in rule.right:
                 need_new_start = True
@@ -175,7 +186,8 @@ class CFGrammar:
     def get_generating_nonterminals(cfg):
         concerned_rules = {nt: set() for nt in cfg.nonterminals}
         counter = [0] * len(cfg.rules)
-        generating = Queue()
+        generating_to_process = Queue()
+        generating = set()
 
         for idx, rule in enumerate(cfg.rules):
             for sym in rule.right:
@@ -183,14 +195,15 @@ class CFGrammar:
                     concerned_rules[sym].add(idx)
                     counter[idx] += 1
             if counter[idx] == 0:
-                generating.put(rule.left)
+                generating_to_process.put(rule.left)
 
-        while not generating.empty():
-            left = generating.get()
+        while not generating_to_process.empty():
+            left = generating_to_process.get()
             for idx in concerned_rules[left]:
                 counter[idx] -= 1
                 if counter[idx] == 0:
-                    generating.put(cfg.rules[idx].left)
+                    generating.add(cfg.rules[idx].left)
+                    generating_to_process.put(cfg.rules[idx].left)
 
         return {cfg.rules[idx].left for idx, cnt in enumerate(counter) if cnt == 0}
 
@@ -228,6 +241,7 @@ class CFGrammar:
     def remove_terminal_rules(cfg):
         new_rules = []
         used_nonterminals = set()
+        
         for rule in cfg.rules:
             if len(rule.right) == 2:
                 right1, right2 = rule.right[0], rule.right[1]
@@ -338,7 +352,7 @@ class CFGrammar:
     def to_chomsky_normal_form(cfg):
         new_cfg = CFGrammar.remove_long_rules(cfg)
         new_cfg = CFGrammar.remove_nullable_rules(new_cfg)
-        new_cfg = CFGrammar.update_start(new_cfg)
+        # new_cfg = CFGrammar.update_start(new_cfg)
         new_cfg = CFGrammar.remove_unit_rules(new_cfg)
         new_cfg = CFGrammar.remove_useless_rules(new_cfg)
         new_cfg = CFGrammar.remove_terminal_rules(new_cfg)
