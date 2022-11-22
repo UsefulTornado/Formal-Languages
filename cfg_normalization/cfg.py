@@ -90,16 +90,21 @@ class CFGrammar:
 
     @staticmethod
     def get_nullable_nonterminals(cfg):
-        concerned_rules = {nt: set() for nt in cfg.nonterminals}
+        concerned_rules = {nt: [] for nt in cfg.nonterminals}
         counter = [0] * len(cfg.rules)
         nullable = set()
         nullable_to_process = Queue()
 
         for idx, rule in enumerate(cfg.rules):
             for sym in rule.right:
+                contains_terminal = False
                 if isinstance(sym, Nonterminal):
-                    concerned_rules[sym].add(idx)
+                    concerned_rules[sym].append(idx)
                     counter[idx] += 1
+                else:
+                    contains_terminal = True
+                if contains_terminal:
+                    counter[idx] = -1
             if not rule.right:
                 nullable_to_process.put(rule.left)
 
@@ -110,7 +115,9 @@ class CFGrammar:
                 counter[idx] -= 1
                 if counter[idx] == 0:
                     nullable_to_process.put(cfg.rules[idx].left)
-
+        # print(counter)
+        # for nl in nullable:
+        #     print('-', nl.symbol)
         return nullable
 
     @staticmethod
@@ -163,17 +170,20 @@ class CFGrammar:
         unit_rules = Queue()
 
         for idx, rule in enumerate(cfg.rules):
-            if len(rule.right) == 1 and rule.right[0] in cfg.nonterminals:
-                unit_rules.put(rule)
+            if len(rule.right) == 1 and isinstance(rule.right[0], Nonterminal):
+                if rule.left != rule.right[0]:
+                    unit_rules.put(rule)
+                    concerned_rules[rule.left].add(idx)
             else:
                 new_rules.append(Rule(rule.left, rule.right))
-            concerned_rules[rule.left].add(idx)
+                concerned_rules[rule.left].add(idx)
+            
 
         while not unit_rules.empty():
             unit_rule = unit_rules.get()
             for idx in concerned_rules[unit_rule.right[0]]:
                 new_rule = Rule(unit_rule.left, cfg.rules[idx].right)
-                if (len(new_rule.right) == 1 and new_rule.right[0] in cfg.nonterminals):
+                if (len(new_rule.right) == 1 and isinstance(new_rule.right[0], Nonterminal)):
                     if new_rule.left != new_rule.right[0]:
                         unit_rules.put(new_rule)
                 else:
