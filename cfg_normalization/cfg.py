@@ -194,28 +194,28 @@ class CFGrammar:
 
     @staticmethod
     def get_generating_nonterminals(cfg):
-        concerned_rules = {nt: set() for nt in cfg.nonterminals}
+        concerned_rules = {nt: [] for nt in cfg.nonterminals}
         counter = [0] * len(cfg.rules)
         generating_to_process = Queue()
         generating = set()
 
         for idx, rule in enumerate(cfg.rules):
             for sym in rule.right:
-                if sym in cfg.nonterminals:
-                    concerned_rules[sym].add(idx)
+                if isinstance(sym, Nonterminal):
+                    concerned_rules[sym].append(idx)
                     counter[idx] += 1
             if counter[idx] == 0:
                 generating_to_process.put(rule.left)
 
         while not generating_to_process.empty():
             left = generating_to_process.get()
+            generating.add(left)
             for idx in concerned_rules[left]:
                 counter[idx] -= 1
                 if counter[idx] == 0:
-                    generating.add(cfg.rules[idx].left)
                     generating_to_process.put(cfg.rules[idx].left)
 
-        return {cfg.rules[idx].left for idx, cnt in enumerate(counter) if cnt == 0}
+        return generating
 
     @staticmethod
     def get_reachable_nonterminals(cfg):
