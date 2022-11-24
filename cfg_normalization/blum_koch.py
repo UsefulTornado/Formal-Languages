@@ -26,7 +26,7 @@ class NFA:
         self._build()
 
     def _build(self):
-        reachable = {self.start_state}
+        reachable = {self.nonterminal}
         nonterminals_to_visit = Queue()
         nonterminals_to_visit.put(self.nonterminal)
 
@@ -48,15 +48,12 @@ class NFA:
                     out_state = Nonterminal(rule.right[0].symbol, mark=self.nonterminal)
                     self.transitions.append(Transition(in_state, rule.right[1:], out_state))
                     self.reversed_transitions.append(Transition(out_state, rule.right[1:], in_state))
+                    update(rule.right[0])
                 else:
                     in_state = Nonterminal(rule.left.symbol, mark=self.nonterminal)
                     out_state = self.final_state
                     self.transitions.append(Transition(in_state, rule.right, out_state))
                     self.reversed_transitions.append(Transition(out_state, rule.right, in_state))
-                
-                for sym in rule.right:
-                    update(sym)
-
     
     def reverse(self):
         self.transitions, self.reversed_transitions = self.reversed_transitions, self.transitions
@@ -69,11 +66,17 @@ class NFA:
 
     def get_grammar(self):
         rules = []
+        contains = False
+        for transition in self.transitions:
+            if transition.in_state == self.final_state:
+                contains = True
+                break
         for transition in self.transitions:
             if transition.out_state == self.final_state:
                 rules.append(Rule(transition.in_state,
                                   self._to_list(transition.transit)))
-            rules.append(Rule(transition.in_state,
+            if transition.out_state != self.final_state or contains:
+                rules.append(Rule(transition.in_state,
                               self._to_list(transition.transit) + self._to_list(transition.out_state)))
 
         return CFGrammar(self.start_state, rules)
@@ -81,36 +84,51 @@ class NFA:
 
 def blum_koch(cfg):
     cfg = CFGrammar.to_chomsky_normal_form(cfg)
+
     nt_grammars = {}
     nfas = []
-    for nt in cfg.nonterminals:
+
+    def get_grammar_by_nt(nt):
         nfa = NFA(cfg, nt)
         nfa.reverse()
         nfas.append(nfa)
-        nt_grammars[nt] = nfa.get_grammar()
-
+        cfg_ = nfa.get_grammar()
+        nt_grammars[nt] = cfg_
+    
+    get_grammar_by_nt(cfg.start)
     new_cfg = nt_grammars[cfg.start]
-    new_rules = deepcopy(new_cfg.rules)
 
+    new_rules = deepcopy(new_cfg.rules)
+    
     def get_rules_by_nonterminal(nt):
         grammar = nt_grammars[nt]
         return list(filter(lambda rule: rule.left == grammar.start, grammar.rules))
 
     rules_to_remove_indices = []
-    for idx in range(len(new_rules)):
-        rule = new_rules[idx]
+    for idx, rule in enumerate(new_rules):
         for sym_idx, sym in enumerate(rule.right):
             if isinstance(sym, Nonterminal) and not sym.mark:
+                if sym not in nt_grammars:
+                    get_grammar_by_nt(sym)
+                    new_rules.extend(nt_grammars[sym].rules)
                 rules_to_remove_indices.append(idx)
-                new_rules.extend(
+                if sym_idx == 0:
+                    new_rules.extend(
                     [Rule(
                         rule.left,
-                        rule.right[:sym_idx] + ext_rule.right + rule.right[sym_idx+1:]
+                        ext_rule.right + rule.right[1:]
                     )
                         for ext_rule in get_rules_by_nonterminal(sym)]
                 )
-
+                else:
+                    new_rules.append(
+                        Rule(rule.left,
+                        rule.right[:sym_idx] + [nt_grammars[sym].start] + rule.right[sym_idx+1:]))
+                
     for idx in rules_to_remove_indices[::-1]:
         new_rules.pop(idx)
+                
+    if Rule(cfg.start, []) in cfg.rules:
+        new_rules.append(Rule(new_cfg.start, []))
 
-    return CFGrammar(new_cfg.start, new_rules), nfas
+    return CFGrammar(new_cfg.start, new_rules), nfas, nt_grammars

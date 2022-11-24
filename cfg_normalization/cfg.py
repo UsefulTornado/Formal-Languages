@@ -8,7 +8,7 @@ class Nonterminal:
         self.mark = mark
 
     def __eq__(self, other):
-        return isinstance(other, Nonterminal) and self.symbol == other.symbol
+        return isinstance(other, Nonterminal) and self.symbol == other.symbol and self.mark == other.mark
 
     def __hash__(self):
         return hash(self.symbol)
@@ -361,8 +361,8 @@ class CFGrammar:
     @staticmethod
     def to_chomsky_normal_form(cfg):
         new_cfg = CFGrammar.remove_long_rules(cfg)
-        new_cfg = CFGrammar.remove_nullable_rules(new_cfg)
-        # new_cfg = CFGrammar.update_start(new_cfg)
+        new_cfg = CFGrammar.remove_nullable_rules(cfg)
+        new_cfg = CFGrammar.update_start(new_cfg)
         new_cfg = CFGrammar.remove_unit_rules(new_cfg)
         new_cfg = CFGrammar.remove_useless_rules(new_cfg)
         new_cfg = CFGrammar.remove_terminal_rules(new_cfg)
