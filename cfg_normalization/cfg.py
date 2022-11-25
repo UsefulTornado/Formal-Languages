@@ -1,5 +1,5 @@
-from queue import Queue
 from copy import deepcopy
+from queue import Queue
 
 
 class Nonterminal:
@@ -8,7 +8,9 @@ class Nonterminal:
         self.mark = mark
 
     def __eq__(self, other):
-        return isinstance(other, Nonterminal) and self.symbol == other.symbol and self.mark == other.mark
+        return (isinstance(other, Nonterminal) and
+                self.symbol == other.symbol and
+                self.mark == other.mark)
 
     def __hash__(self):
         return hash(self.symbol)
@@ -24,7 +26,8 @@ class Terminal:
         self.symbol = symbol
 
     def __eq__(self, other):
-        return isinstance(other, Terminal) and self.symbol == other.symbol
+        return (isinstance(other, Terminal) and
+                self.symbol == other.symbol)
 
     def __hash__(self):
         return hash(self.symbol)
@@ -39,14 +42,12 @@ class Rule:
         self.right = right
 
     def __eq__(self, other):
-        return (
-            isinstance(other, Rule)
-            and self.left == other.left
-            and self.right == other.right
-        )
+        return (isinstance(other, Rule) and
+                self.left == other.left and
+                self.right == other.right)
     
     def __str__(self):
-        return f'{self.left} -> {" ".join(list(map(str, self.right)))}'
+        return f'{self.left} -> {" ".join(map(str, self.right))}'
 
 
 class CFGrammar:
@@ -54,6 +55,12 @@ class CFGrammar:
         self.start = start
         self.rules = rules or []
         self.nonterminals = self._get_nonterminals()
+
+    def __str__(self):
+        return ('Starting: ' + str(self.start) + '\n' +
+                'Nonterminals: ' + " ".join(map(str, self.nonterminals)) + '\n\n' +
+                'Rules:\n\n' +
+                '\n'.join(map(str, self.rules)))
 
     def _get_nonterminals(self):
         nonterminals = set()
@@ -115,9 +122,7 @@ class CFGrammar:
                 counter[idx] -= 1
                 if counter[idx] == 0:
                     nullable_to_process.put(cfg.rules[idx].left)
-        # print(counter)
-        # for nl in nullable:
-        #     print('-', nl.symbol)
+
         return nullable
 
     @staticmethod
@@ -178,7 +183,6 @@ class CFGrammar:
                 new_rules.append(Rule(rule.left, rule.right))
                 concerned_rules[rule.left].add(idx)
             
-
         while not unit_rules.empty():
             unit_rule = unit_rules.get()
             for idx in concerned_rules[unit_rule.right[0]]:
@@ -231,8 +235,8 @@ class CFGrammar:
                             reachable.add(sym)
                             if not visited[sym]:
                                 visit(sym)
-
         visit(cfg.start)
+
         return reachable
 
     @staticmethod
@@ -342,7 +346,7 @@ class CFGrammar:
         new_rules = deepcopy(new_cfg.rules)
         
         for i in range(len(ordered_nonterminals) - 1, -1, -1):
-            for j in range(i+1, len(ordered_nonterminals)):
+            for j in range(i + 1, len(ordered_nonterminals)):
                 rules_to_remove_indices = []
                 for idx in range(len(new_rules)):
                     rule = new_rules[idx]

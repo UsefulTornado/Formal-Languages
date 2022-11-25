@@ -1,8 +1,9 @@
-from cfg import Nonterminal, Rule, CFGrammar
-from dataclasses import dataclass
-from copy import deepcopy
-from queue import Queue
 from collections import defaultdict
+from copy import deepcopy
+from dataclasses import dataclass
+from queue import Queue
+
+from cfg import CFGrammar, Nonterminal, Rule
 
 
 @dataclass
@@ -24,6 +25,10 @@ class NFA:
         self.transitions = []
         self.reversed_transitions = []
         self._build()
+
+    def __str__(self):
+        return (str(self.nonterminal) + '\n' +
+                '\n'.join(map(str, self.transitions)))
 
     def _build(self):
         reachable = {self.nonterminal}
@@ -66,64 +71,55 @@ class NFA:
 
     def get_grammar(self):
         rules = []
-        contains = False
-        for transition in self.transitions:
-            if transition.in_state == self.final_state:
-                contains = True
-                break
+        contains_transitions = any(tr.in_state == self.final_state for tr in self.transitions)
+
         for transition in self.transitions:
             if transition.out_state == self.final_state:
                 rules.append(Rule(transition.in_state,
                                   self._to_list(transition.transit)))
-            if transition.out_state != self.final_state or contains:
+            if transition.out_state != self.final_state or contains_transitions:
                 rules.append(Rule(transition.in_state,
                               self._to_list(transition.transit) + self._to_list(transition.out_state)))
 
         return CFGrammar(self.start_state, rules)
 
 
-def blum_koch(cfg):
+def blum_koch_normalize(cfg):
     cfg = CFGrammar.to_chomsky_normal_form(cfg)
 
     nt_grammars = {}
     nfas = []
 
-    def get_grammar_by_nt(nt):
+    def build_grammar_by_nonterminal(nt):
         nfa = NFA(cfg, nt)
         nfa.reverse()
         nfas.append(nfa)
         cfg_ = nfa.get_grammar()
         nt_grammars[nt] = cfg_
-    
-    get_grammar_by_nt(cfg.start)
-    new_cfg = nt_grammars[cfg.start]
 
-    new_rules = deepcopy(new_cfg.rules)
-    
     def get_rules_by_nonterminal(nt):
         grammar = nt_grammars[nt]
         return list(filter(lambda rule: rule.left == grammar.start, grammar.rules))
-
+    
+    build_grammar_by_nonterminal(cfg.start)
+    new_cfg = nt_grammars[cfg.start]
+    new_rules = deepcopy(new_cfg.rules)
     rules_to_remove_indices = []
+    
     for idx, rule in enumerate(new_rules):
         for sym_idx, sym in enumerate(rule.right):
             if isinstance(sym, Nonterminal) and not sym.mark:
                 if sym not in nt_grammars:
-                    get_grammar_by_nt(sym)
+                    build_grammar_by_nonterminal(sym)
                     new_rules.extend(nt_grammars[sym].rules)
                 rules_to_remove_indices.append(idx)
                 if sym_idx == 0:
-                    new_rules.extend(
-                    [Rule(
-                        rule.left,
-                        ext_rule.right + rule.right[1:]
-                    )
-                        for ext_rule in get_rules_by_nonterminal(sym)]
-                )
+                    new_rules.extend([Rule(rule.left, ext_rule.right + rule.right[1:])
+                                        for ext_rule in get_rules_by_nonterminal(sym)])
                 else:
                     new_rules.append(
                         Rule(rule.left,
-                        rule.right[:sym_idx] + [nt_grammars[sym].start] + rule.right[sym_idx+1:]))
+                             rule.right[:sym_idx] + [nt_grammars[sym].start] + rule.right[sym_idx+1:]))
                 
     for idx in rules_to_remove_indices[::-1]:
         new_rules.pop(idx)
@@ -131,4 +127,4 @@ def blum_koch(cfg):
     if Rule(cfg.start, []) in cfg.rules:
         new_rules.append(Rule(new_cfg.start, []))
 
-    return CFGrammar(new_cfg.start, new_rules), nfas, nt_grammars
+    return CFGrammar(new_cfg.start, new_rules), nfas
