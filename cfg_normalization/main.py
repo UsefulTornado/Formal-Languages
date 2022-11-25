@@ -14,12 +14,12 @@ def main():
     )
     parser.add_argument(
         "-cnf", "--chomsky", action="store_true",
-        help="Whether to use Chomsky normalization."
+        help="Whether to use Chomsky normalization. "
              "If not specified, Greibach normalization is used.",
     )
     parser.add_argument(
         "-bk", "--blum_koch", action="store_true",
-        help="Whether to use Blum-Koch algorithm for Greibach normalization."
+        help="Whether to use Blum-Koch algorithm for Greibach normalization. "
              "If not specified, elimination of left recursion is used.",
     )
     parser.add_argument(
