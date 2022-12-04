@@ -1,4 +1,6 @@
 from collections import defaultdict
+from copy import deepcopy
+
 
 class Nonterminal:
     def __init__(self, symbol, mark=None):
@@ -75,14 +77,14 @@ class CFGrammar:
         return rules_by_nts
 
     def first(self, k, symbols):
-        def cartesian_product(set1, set2):
+        def cartesian_product(set1, set2, max_num):
             if not set1:
                 return set2
             if not set2:
                 return set1
-            return {a + b for a in set1 for b in set2}
+            return {(a + b)[:max_num] for a in set1 for b in set2}
 
-        def first_rec(k, symbols):
+        def first_rec(k, symbols, visited):
             if k == 0:
                 return set()
 
@@ -90,15 +92,29 @@ class CFGrammar:
                 return {tuple()}
 
             if isinstance(symbols[0], Terminal):
-                return cartesian_product({(symbols[0], )}, first_rec(k - 1, symbols[1:]))
+                return cartesian_product(
+                    {(symbols[0], )},
+                    first_rec(k - 1, symbols[1:], visited),
+                    max_num=k
+                )
 
+            curr_visited = deepcopy(visited)
             first = set()
+            
             for rule in self.rules_by_nonterminals[symbols[0]]:
-                first |= first_rec(k, rule.right + symbols[1:])
+                if rule.right and rule.right[0] == symbols[0] and symbols[0] in curr_visited:
+                    first |= cartesian_product(
+                        first_rec(k - 1, rule.right, curr_visited),
+                        first_rec(k - 1, symbols[1:], curr_visited),
+                        max_num=k
+                    )
+                else:
+                    curr_visited.add(symbols[0])
+                    first |= first_rec(k, rule.right + symbols[1:], curr_visited)
 
             return first
 
-        return first_rec(k, symbols)
+        return first_rec(k, symbols, set())
 
     def follow(self, k, nonterminal):
         def follow_rec(k, nonterminal):
@@ -114,10 +130,10 @@ class CFGrammar:
             for rule in self.rules:
                 if nonterminal in rule.right:
                     idx = rule.right.index(nonterminal)
-                    previous = tuple(rule.right[idx+1:])
+                    previous = rule.right[idx+1:]
                     following = follow_rec(k, rule.left)
                     for flw in following:
-                        follow |= self.first(k, previous + flw)
+                        follow |= self.first(k, previous + list(flw))
 
             return follow
             
