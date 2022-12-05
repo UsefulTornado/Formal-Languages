@@ -21,5 +21,9 @@ class Parser:
 
         return Rule(left, right)
 
+    def _parse_rules(self, line):
+        left, rights = line.split('->')
+        return [self._parse_rule(left + right) for right in rights.split('|')]
+
     def parse_grammar(self, lines):
-        return [self._parse_rule(line) for line in lines]
+        return sum([self._parse_rules(line) for line in lines if not line.isspace()], [])
