@@ -76,6 +76,13 @@ class CFGrammar:
             rules_by_nts[rule.left].append(rule)
         return rules_by_nts
 
+    def _new_nonterminal(self, sym):
+        suffix = 0
+        sym = sym.upper()
+        while Nonterminal(sym + str(suffix)) in self.nonterminals:
+            suffix += 1
+        return Nonterminal(sym + str(suffix))
+
     def first(self, k, symbols):
         def cartesian_product(set1, set2, max_num):
             if not set1:
@@ -118,7 +125,7 @@ class CFGrammar:
 
     def follow(self, k, nonterminal):
         def follow_rec(k, nonterminal):
-            if nonterminal == self.start:
+            if nonterminal == new_start:
                 return {(Terminal('$'), )}
 
             if nonterminal in visited:
@@ -132,10 +139,17 @@ class CFGrammar:
                     idx = rule.right.index(nonterminal)
                     previous = rule.right[idx+1:]
                     following = follow_rec(k, rule.left)
-                    for flw in following:
-                        follow |= self.first(k, previous + list(flw))
+                    if following:
+                        for flw in following:
+                            follow |= self.first(k, previous + list(flw))
+                    elif previous:
+                        follow |= self.first(k, previous)
 
             return follow
-            
+        
+        new_start = self._new_nonterminal(self.start.symbol)
+        self.rules.append(Rule(new_start, [self.start]))
         visited = set()
-        return follow_rec(k, nonterminal)
+        res = follow_rec(k, nonterminal)
+        self.rules.pop()
+        return res
