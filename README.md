@@ -13,7 +13,7 @@ Let $V$ be the *variables* set and $F$ be the *constructors* set; $T(F)$ is a se
 A rewriting rule $\Phi_i \rightarrow \Psi_i$ can be applied to a term $t$ if the left term $\Phi_i$ matches some subterm of $t$.
 
 ### **Termination**
-A relation $\rightarrow$ is **well-founded** iff there is no infinite set $\{t_0, t_1, t_2, ...\}$ with $t_0 \rightarrow t_1 \rightarrow t_2 \rightarrow ...$.
+A relation $\rightarrow$ is **well-founded** iff there is no infinite set $\{t_0, t_1, t_2, ...\}$ with $t_0 \rightarrow t_1 \rightarrow t_2 \rightarrow ...$
 
 A TRS $\{l_i \rightarrow r_i\}$ is **terminating** iff term rewriting relation $\rightarrow$ is well-founded.
 
