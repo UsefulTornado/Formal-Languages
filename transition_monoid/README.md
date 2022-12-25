@@ -46,7 +46,7 @@ Optionally, the DFA can be tested for minimality and, if it's minimal, informati
 
 ```-f, --file_path``` - path to the file with DFA input data.
 
-```-f, --file_path``` - whether to print information about Myhill-Nerode equivalence classes.
+```-mn, --myhill_nerode``` - whether to print information about Myhill-Nerode equivalence classes.
 
 For example, run a program with the specified file:
 ```
