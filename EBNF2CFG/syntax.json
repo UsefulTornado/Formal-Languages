@@ -1,0 +1,14 @@
+{
+    "assignment": "=",
+    "separator": ";",
+    "alternative": "|",
+    "concatenation": ",",
+    "nonterminal_start": "<",
+    "nonterminal_end": ">",
+    "group_start": "(",
+    "group_end": ")",
+    "optional_start": "[",
+    "optional_end": "]",
+    "iteration_start": "{",
+    "iteration_end": "}"
+}
