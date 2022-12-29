@@ -10,10 +10,10 @@
 <RHS> ::= <RHSTerm> <RestRHS>.
 <RestRHS> ::= <Alt> <RHSTerm> <RestRHS> | <Eps>.
 <RHSTerm> ::= <RHSFactor> <RestRHSTerm>.
-<RestRHSTerm> ::= <RHSFactor> | <Eps>.
-<RHSFactor> ::= <Term> | <Nterm> |
-                <GroupStart> <RHS> <GroupEnd> |
-                <OptionalStart> <RHS> <OptionalEnd> |
-                <IterStart> <RHS> <IterEnd>.
+<RestRHSTerm> ::= <Concat> <RHSFactor> <RestRHSTerm> | <Eps>.
+<RHSFactor> ::= <Term> | <Nterm> | <Group> | <Optional> | <Iter>.
 <Nterm> ::= <Nstart> <Str> <Nend>.
+<Group> ::= <GroupStart> <RHS> <GroupEnd>.
+<Optional> ::= <OptionalStart> <RHS> <OptionalEnd>.
+<Iter> ::= <IterStart> <RHS> <IterEnd>.
 ```
