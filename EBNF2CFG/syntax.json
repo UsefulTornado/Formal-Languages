@@ -2,6 +2,7 @@
     "assignment": "=",
     "separator": ";",
     "alternative": "|",
+    "empty": "$",
     "concatenation": ",",
     "nonterminal_start": "<",
     "nonterminal_end": ">",
