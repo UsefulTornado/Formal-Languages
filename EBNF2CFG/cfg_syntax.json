@@ -1,0 +1,11 @@
+{   
+    "assignment": " -> ",
+    "separator": "\n",
+    "nonterm_start": "[",
+    "nonterm_end": "]",
+    "alternative": "|",
+    "concatination": "",
+    "start_nonterm_start": "<",
+    "start_nonterm_end": ">",
+    "epsilon_rule": "$"
+}

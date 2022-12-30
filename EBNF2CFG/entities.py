@@ -15,6 +15,9 @@ class Terminal:
 @dataclass
 class Nonterminal:
     symbol: str
+    
+    def __hash__(self):
+        return hash(self.symbol)
 
 
 @dataclass
