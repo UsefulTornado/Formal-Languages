@@ -1,16 +1,18 @@
-from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Optional, List
+from enum import Enum, auto
 from queue import Queue
+from typing import List, Optional
+
 from entities import (
-    Rule,
-    Terminal,
-    Nonterminal,
     RHS,
     AltNode,
+    Empty,
     GroupNode,
-    OptionalNode,
     IterNode,
+    Nonterminal,
+    OptionalNode,
+    Rule,
+    Terminal,
 )
 
 
@@ -24,6 +26,7 @@ class Tag(Enum):
     NEND = auto()
     ASSIGNMENT = auto()
     SEPARATOR = auto()
+    EPS = auto()
     ALT = auto()
     CONCAT = auto()
     GROUPSTART = auto()
@@ -49,18 +52,19 @@ class Lexer:
     def __init__(self, config):
         self.config = config
         self._mapping = {
-            config['assignment']: Tag.ASSIGNMENT,
-            config['separator']: Tag.SEPARATOR,
-            config['alternative']: Tag.ALT,
-            config['concatenation']: Tag.CONCAT,
-            config['nonterminal_start']: Tag.NSTART,
-            config['nonterminal_end']: Tag.NEND,
-            config['group_start']: Tag.GROUPSTART,
-            config['group_end']: Tag.GROUPEND,
-            config['optional_start']: Tag.OPTSTART,
-            config['optional_end']: Tag.OPTEND,
-            config['iteration_start']: Tag.ITERSTART,
-            config['iteration_end']: Tag.ITEREND,
+            config["assignment"]: Tag.ASSIGNMENT,
+            config["separator"]: Tag.SEPARATOR,
+            config["empty"]: Tag.EPS,
+            config["alternative"]: Tag.ALT,
+            config["concatenation"]: Tag.CONCAT,
+            config["nonterminal_start"]: Tag.NSTART,
+            config["nonterminal_end"]: Tag.NEND,
+            config["group_start"]: Tag.GROUPSTART,
+            config["group_end"]: Tag.GROUPEND,
+            config["optional_start"]: Tag.OPTSTART,
+            config["optional_end"]: Tag.OPTEND,
+            config["iteration_start"]: Tag.ITERSTART,
+            config["iteration_end"]: Tag.ITEREND,
         }
 
     def tokenize(self, input_str: str) -> Queue:
@@ -128,6 +132,8 @@ class Parser:
 
         def rhs_factor():
             token = tokens.get()
+            if token.tag == Tag.EPS:
+                return Empty(token.value)
             if token.tag == Tag.TERM:
                 return Terminal(token.value)
             if token.tag == Tag.NSTART:

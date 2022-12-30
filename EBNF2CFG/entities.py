@@ -3,6 +3,11 @@ from typing import List, Optional, Union
 
 
 @dataclass
+class Empty:
+    symbol: str
+
+
+@dataclass
 class Terminal:
     symbol: str
 
