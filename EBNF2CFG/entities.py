@@ -54,7 +54,7 @@ class Rule:
 @dataclass
 class CFGRule:
     lhs: Nonterminal
-    rhs: List[Union[Terminal, Nonterminal]]
+    rhs: List[Union[Empty, Terminal, Nonterminal]]
 
 
 @dataclass

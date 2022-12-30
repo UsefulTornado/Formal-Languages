@@ -12,11 +12,11 @@ def main():
         help="Path to the file with custom syntax.",
     )
     parser.add_argument(
-        "-g", "--grammar",
+        "-g", "--grammar",  default="grammar.txt",
         help="Path to the file with grammar in custom EBNF syntax.",
     )
     parser.add_argument(
-        "-sc", "--syntax_cfg", default="EBNF2CFG/cfg_syntax.json",
+        "-sc", "--syntax_cfg", default="cfg_syntax.json",
         help="Path to the file with grammar in custom CFG syntax.",
     )
     args = parser.parse_args()
@@ -33,12 +33,9 @@ def main():
     tokens = Lexer(syntax).tokenize(grammar)
     rules = Parser().parse(tokens)
 
-    print(rules[0].rhs)
-    cucumber = Converter(rules, [])
-    cfg = cucumber.ebnf_2_cfg()
-    for rule in cfg.rules:
-        print(rule.lhs, rule.rhs)
-    cucumber.display_cfg_in_user_syntax(syntax_cfg)
+    converter = Converter(rules, [])
+    converter.ebnf_2_cfg()
+    converter.display_cfg_in_user_syntax(syntax_cfg)
 
 if __name__ == "__main__":
     main()
