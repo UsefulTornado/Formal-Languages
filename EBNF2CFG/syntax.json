@@ -1,4 +1,6 @@
 {
+    "terminal": "[a-z]+",
+    "nonterminal": "[A-Z]+[0-9]?",
     "assignment": "=",
     "separator": ";",
     "alternative": "|",

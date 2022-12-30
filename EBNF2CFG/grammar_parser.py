@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from enum import Enum, auto
 from queue import Queue
@@ -49,7 +50,7 @@ class Token:
 class Lexer:
     """Performs lexical analysis of input data."""
 
-    def __init__(self, config):
+    def __init__(self, config: dict):
         self.config = config
         self._mapping = {
             config["assignment"]: Tag.ASSIGNMENT,
@@ -69,16 +70,24 @@ class Lexer:
 
     def tokenize(self, input_str: str) -> Queue:
         tokens = Queue()
-
-        for sym in input_str:
+        idx = 0
+        while idx < len(input_str):
+            sym = input_str[idx]
             if sym in self._mapping:
                 tokens.put(Token(tag=self._mapping[sym], value=sym))
-            elif sym.isalpha():
-                if sym.isupper():
-                    tag = Tag.NTERM
+                idx += 1
+            else:
+                matched = re.match(self.config["terminal"], input_str[idx:])
+                if matched:
+                    tokens.put(Token(tag=Tag.TERM, value=matched.group()))
+                    idx += matched.end()
                 else:
-                    tag = Tag.TERM
-                tokens.put(Token(tag=tag, value=sym))
+                    matched = re.match(self.config["nonterminal"], input_str[idx:])
+                    if matched:
+                        tokens.put(Token(tag=Tag.NTERM, value=matched.group()))
+                        idx += matched.end()
+                    else:
+                        idx += 1
 
         tokens.put(Token(tag=Tag.END))
         return tokens
@@ -86,9 +95,6 @@ class Lexer:
 
 class Parser:
     """Performs syntax analysis of input data."""
-
-    def __init__(self):
-        pass
 
     def parse(self, tokens: Queue) -> List[Rule]:
         def rules() -> List[Rule]:

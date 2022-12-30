@@ -15,7 +15,7 @@ class Terminal:
 @dataclass
 class Nonterminal:
     symbol: str
-    
+
     def __hash__(self):
         return hash(self.symbol)
 
@@ -36,13 +36,8 @@ class IterNode:
 
 
 @dataclass
-class ConcatNode:
-    value: Union[Terminal, Nonterminal, GroupNode, OptionalNode, IterNode]
-
-
-@dataclass
 class AltNode:
-    nodes: List[ConcatNode]
+    nodes: List[Union[Empty, Terminal, Nonterminal, GroupNode, OptionalNode, IterNode]]
 
 
 @dataclass
