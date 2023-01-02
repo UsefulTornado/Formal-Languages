@@ -5,7 +5,7 @@ This program converts a grammar in EBNF with tokens that can be configured into 
 ## Input data
 The program requires 3 files:
 * **syntax.json** - file with custom tokens for grammar in EBNF;
-* **cfg_syntax** - file with custom tokens for output CFG;
+* **cfg_syntax.json** - file with custom tokens for output CFG;
 * **grammar.txt** - file with grammar in EBNF.
 
 For this, new files can be added or files with default values can be used.
