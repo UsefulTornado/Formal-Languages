@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum, auto
 from queue import Queue
-from typing import List, Optional
+from typing import List
 
 from entities import (
     RHS,
@@ -36,6 +36,7 @@ class Tag(Enum):
     OPTEND = auto()
     ITERSTART = auto()
     ITEREND = auto()
+    UNMATCHED = auto()
     END = auto()
 
 
@@ -44,7 +45,7 @@ class Token:
     """Represents tokens for lexical analysis."""
 
     tag: Tag
-    value: Optional[str] = None
+    value: str = ""
 
 
 class Lexer:
@@ -57,7 +58,6 @@ class Lexer:
             config["separator"]: Tag.SEPARATOR,
             config["empty"]: Tag.EPS,
             config["alternative"]: Tag.ALT,
-            config["concatenation"]: Tag.CONCAT,
             config["nonterminal_start"]: Tag.NSTART,
             config["nonterminal_end"]: Tag.NEND,
             config["group_start"]: Tag.GROUPSTART,
@@ -67,27 +67,36 @@ class Lexer:
             config["iteration_start"]: Tag.ITERSTART,
             config["iteration_end"]: Tag.ITEREND,
         }
+        if config['concatenation']:
+            self._mapping[config['concatenation']] = Tag.CONCAT
+        self._re_mapping = {
+            config["terminal"]: Tag.TERM,
+            config["nonterminal"]: Tag.NTERM,
+        }
+
+    def _match_token(self, input_str: str) -> Token:
+        for pattern, tag in self._re_mapping.items():
+            matched = re.match(pattern, input_str)
+            if matched:
+                return Token(tag=tag, value=matched.group())
+
+        for pattern, tag in self._mapping.items():
+            if input_str.startswith(pattern):
+                return Token(tag=tag, value=pattern)
+
+        return Token(tag=Tag.UNMATCHED)
 
     def tokenize(self, input_str: str) -> Queue:
         tokens = Queue()
         idx = 0
+
         while idx < len(input_str):
-            sym = input_str[idx]
-            if sym in self._mapping:
-                tokens.put(Token(tag=self._mapping[sym], value=sym))
+            token = self._match_token(input_str[idx:])
+            if token.tag == Tag.UNMATCHED:
                 idx += 1
             else:
-                matched = re.match(self.config["terminal"], input_str[idx:])
-                if matched:
-                    tokens.put(Token(tag=Tag.TERM, value=matched.group()))
-                    idx += matched.end()
-                else:
-                    matched = re.match(self.config["nonterminal"], input_str[idx:])
-                    if matched:
-                        tokens.put(Token(tag=Tag.NTERM, value=matched.group()))
-                        idx += matched.end()
-                    else:
-                        idx += 1
+                tokens.put(token)
+                idx += len(token.value)
 
         tokens.put(Token(tag=Tag.END))
         return tokens
@@ -132,6 +141,16 @@ class Parser:
         def rest_rhs_term(factors):
             if tokens.queue[0].tag == Tag.CONCAT:
                 tokens.get()
+                factors.append(rhs_factor())
+                return rest_rhs_term(factors)
+            if tokens.queue[0].tag in [
+                Tag.EPS,
+                Tag.TERM,
+                Tag.NSTART,
+                Tag.GROUPSTART,
+                Tag.OPTSTART,
+                Tag.ITERSTART,
+            ]:
                 factors.append(rhs_factor())
                 return rest_rhs_term(factors)
             return factors
