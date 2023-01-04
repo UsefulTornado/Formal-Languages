@@ -16,6 +16,9 @@ class Terminal:
 class Nonterminal:
     symbol: str
 
+    def __eq__(self, other):
+        return isinstance(other, Nonterminal) and self.symbol == other.symbol
+
     def __hash__(self):
         return hash(self.symbol)
 

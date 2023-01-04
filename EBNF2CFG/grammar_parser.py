@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum, auto
 from queue import Queue
-from typing import List
+from typing import List, Set, Tuple
 
 from entities import (
     RHS,
@@ -67,8 +67,8 @@ class Lexer:
             config["iteration_start"]: Tag.ITERSTART,
             config["iteration_end"]: Tag.ITEREND,
         }
-        if config['concatenation']:
-            self._mapping[config['concatenation']] = Tag.CONCAT
+        if config["concatenation"]:
+            self._mapping[config["concatenation"]] = Tag.CONCAT
         self._re_mapping = {
             config["terminal"]: Tag.TERM,
             config["nonterminal"]: Tag.NTERM,
@@ -84,7 +84,7 @@ class Lexer:
             if input_str.startswith(pattern):
                 return Token(tag=tag, value=pattern)
 
-        return Token(tag=Tag.UNMATCHED)
+        return Token(tag=Tag.UNMATCHED, value=input_str[0])
 
     def tokenize(self, input_str: str) -> Queue:
         tokens = Queue()
@@ -92,7 +92,7 @@ class Lexer:
 
         while idx < len(input_str):
             token = self._match_token(input_str[idx:])
-            if token.tag == Tag.UNMATCHED:
+            if token.tag == Tag.UNMATCHED and token.value.isspace():
                 idx += 1
             else:
                 tokens.put(token)
@@ -105,7 +105,9 @@ class Lexer:
 class Parser:
     """Performs syntax analysis of input data."""
 
-    def parse(self, tokens: Queue) -> List[Rule]:
+    def parse(self, tokens: Queue) -> Tuple[List[Rule], Set[Nonterminal]]:
+        nonterminals = set()
+
         def rules() -> List[Rule]:
             return rest_rules([rule()])
 
@@ -120,6 +122,7 @@ class Parser:
             assert tokens.get().tag == Tag.NSTART
             lhs = tokens.get()
             assert lhs.tag == Tag.NTERM
+            nonterminals.add(Nonterminal(lhs.value))
             assert tokens.get().tag == Tag.NEND
             assert tokens.get().tag == Tag.ASSIGNMENT
             rhs_ = rhs()
@@ -165,6 +168,7 @@ class Parser:
                 token = tokens.get()
                 assert token.tag == Tag.NTERM
                 assert tokens.get().tag == Tag.NEND
+                nonterminals.add(Nonterminal(token.value))
                 return Nonterminal(token.value)
             if token.tag == Tag.GROUPSTART:
                 rhs_ = rhs()
@@ -180,4 +184,5 @@ class Parser:
                 return IterNode(rhs_)
             raise Exception(f"Wrong Factor <{token.tag}> with value <{token.value}>")
 
-        return rules()
+        rules_ = rules()
+        return rules_, nonterminals

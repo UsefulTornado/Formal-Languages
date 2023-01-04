@@ -31,9 +31,9 @@ def main():
         syntax_cfg = json.load(file)
 
     tokens = Lexer(syntax).tokenize(grammar)
-    rules = Parser().parse(tokens)
+    rules, nonterminals = Parser().parse(tokens)
 
-    converter = Converter(rules, [])
+    converter = Converter(rules, nonterminals)
     converter.ebnf_2_cfg()
     converter.display_cfg_in_user_syntax(syntax_cfg)
 

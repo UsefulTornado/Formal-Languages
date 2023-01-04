@@ -38,7 +38,7 @@ class Converter:
         while Nonterminal(sym + str(suffix)) in self.nonterminals:
             suffix += 1
         nonterm = Nonterminal(sym + str(suffix))
-        self.nonterminals.append(nonterm)
+        self.nonterminals.add(nonterm)
         return nonterm
 
     def ebnf_2_cfg(self):
